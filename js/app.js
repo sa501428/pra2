@@ -2,7 +2,44 @@ class PlateletApp {
     constructor() {
         this.calculator = new PlateletCalculator();
         this.chart = new PlateletChart('plateletChart');
+        
+        // Add reset zoom button handler
+        document.getElementById('resetZoom').addEventListener('click', () => {
+            this.chart.resetZoom();
+        });
+        
+        this.settings = {
+            minLookback: 0,
+            maxLookback: 36,
+            minAfter: 1,
+            maxAfter: 120
+        };
         this.initializeEventListeners();
+        this.initializeModal();
+    }
+
+    initializeModal() {
+        const modal = document.getElementById('settingsModal');
+        const btn = document.getElementById('settingsButton');
+        const span = document.getElementsByClassName('close')[0];
+        const saveBtn = document.getElementById('saveSettings');
+
+        btn.onclick = () => modal.style.display = 'block';
+        span.onclick = () => modal.style.display = 'none';
+        window.onclick = (e) => {
+            if (e.target == modal) modal.style.display = 'none';
+        };
+
+        saveBtn.onclick = () => {
+            this.settings = {
+                minLookback: parseFloat(document.getElementById('minLookback').value),
+                maxLookback: parseFloat(document.getElementById('maxLookback').value),
+                minAfter: parseFloat(document.getElementById('minAfter').value),
+                maxAfter: parseFloat(document.getElementById('maxAfter').value)
+            };
+            modal.style.display = 'none';
+            this.calculate();
+        };
     }
 
     initializeEventListeners() {
@@ -27,26 +64,31 @@ class PlateletApp {
             const counts = this.calculator.parsePlateletCounts(plateletText);
 
             const results = this.processTransfusions(transfusions, counts, bsa, plateletUnits);
+            
             this.updateResults(results);
-            this.chart.createChart({ counts, transfusions, results });
+            this.chart.createChart({
+                counts: counts.sort((a, b) => a.dateTime - b.dateTime),
+                transfusions,
+                results
+            });
         } catch (error) {
-            console.error('Calculation error:', error);
+            // Handle error silently or show user-friendly message if needed
         }
     }
 
     processTransfusions(transfusions, counts, bsa, plateletUnits) {
         return transfusions.map(transfusion => {
             const preCount = this.calculator.findClosestCount(
-                transfusion.startDateTime,
+                transfusion.endDateTime,
                 counts,
-                36,
+                this.settings.maxLookback,
                 true
             );
 
             const postCount = this.calculator.findClosestCount(
                 transfusion.endDateTime,
                 counts,
-                2,
+                this.settings.maxAfter / 60, // convert to hours
                 false
             );
 
@@ -71,21 +113,59 @@ class PlateletApp {
 
     updateResults(results) {
         const tbody = document.getElementById('resultsBody');
+        const summary = document.getElementById('summaryText');
         tbody.innerHTML = '';
+
+        // Only count results where CCI could be calculated
+        const validResults = results.filter(r => r.cci !== null);
+        const adequate = validResults.filter(r => r.cci >= 7500);
+        const inadequate = validResults.filter(r => r.cci < 7500);
+
+        let summaryText = '';
+        
+        if (inadequate.length > 0) {
+            summaryText += `${inadequate.length} transfusion${inadequate.length > 1 ? 's' : ''} had an inadequate bump:\n`;
+            inadequate.forEach(r => {
+                const minutesAfter = Math.round((r.postCount.dateTime - r.transfusion.endDateTime) / (1000 * 60));
+                summaryText += `• ${r.transfusion.date} at ${r.transfusion.endTime}, `;
+                summaryText += `pre: ${r.preCount.count}, post: ${r.postCount.count} `;
+                summaryText += `(${minutesAfter} mins after), CCI: ${Math.round(r.cci)}\n`;
+            });
+            summaryText += '\n';
+        }
+
+        if (adequate.length > 0) {
+            summaryText += `${adequate.length} transfusion${adequate.length > 1 ? 's' : ''} had an adequate bump:\n`;
+            adequate.forEach(r => {
+                const minutesAfter = Math.round((r.postCount.dateTime - r.transfusion.endDateTime) / (1000 * 60));
+                summaryText += `• ${r.transfusion.date} at ${r.transfusion.endTime}, `;
+                summaryText += `pre: ${r.preCount.count}, post: ${r.postCount.count} `;
+                summaryText += `(${minutesAfter} mins after), CCI: ${Math.round(r.cci)}\n`;
+            });
+        }
+
+        summary.textContent = summaryText;
 
         results.forEach(result => {
             const row = document.createElement('tr');
+            if (result.cci !== null) {
+                row.className = result.cci >= 7500 ? 'adequate' : 'inadequate';
+            }
             row.innerHTML = `
-                <td>${result.transfusion.date} ${result.transfusion.startTime}</td>
+                <td>${result.transfusion.date} ${result.transfusion.endTime}</td>
                 <td>${result.preCount ? result.preCount.count : '-'}</td>
                 <td>${result.postCount ? result.postCount.count : '-'}</td>
                 <td>${result.cci ? Math.round(result.cci) : '-'}</td>
-                <td class="${result.cci >= 7500 ? 'adequate' : 'inadequate'}">
-                    ${result.cci ? (result.cci >= 7500 ? 'Adequate' : 'Inadequate') : '-'}
-                </td>
             `;
             tbody.appendChild(row);
         });
+    }
+
+    formatResultLine(result) {
+        return `${result.transfusion.date} ${result.transfusion.endTime}: ` +
+            `Pre=${result.preCount ? result.preCount.count : '-'} ` +
+            `Post=${result.postCount ? result.postCount.count : '-'} ` +
+            `CCI=${result.cci ? Math.round(result.cci) : '-'}`;
     }
 }
 

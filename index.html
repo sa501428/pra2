@@ -28,6 +28,9 @@
                     <label for="plateletUnits">Platelet Units (×10¹¹)</label>
                     <input type="number" id="plateletUnits" min="0" step="0.1" value="3" required>
                 </div>
+                <div class="input-group">
+                    <button id="settingsButton" class="settings-btn">Time Settings</button>
+                </div>
             </section>
 
             <!-- Data Entry Section -->
@@ -35,13 +38,16 @@
                 <div class="input-area">
                     <h2>Transfusion Data</h2>
                     <textarea id="transfusionData" placeholder="Enter transfusion data...
-Format: MM/DD/YY HHMM to HHMM
-Example: 02/15/24 0800 to 0900"></textarea>
+Format: MM/DD/YY HHMM to HHMM (24-hour)
+Example: 02/15/24 0800 to 0900
+Example: 02/15/24 2000 to 2100"></textarea>
                 </div>
                 <div class="input-area">
                     <h2>Platelet Counts</h2>
                     <textarea id="plateletCounts" placeholder="Enter platelet counts...
-Format: MM/DD/YY HH:MM
+Format: MM/DD/YY HH:MM (24-hour)
+Example: 02/15/24 08:00
+Example: 02/15/24 20:00
 PLT: XXX
 or
 MM/DD/YY HH:MM
@@ -52,6 +58,10 @@ Platelets: XXX"></textarea>
             <!-- Results Section -->
             <section class="results">
                 <h2>Results</h2>
+                <div class="results-summary">
+                    <h3>Summary</h3>
+                    <div id="summaryText" class="summary-content"></div>
+                </div>
                 <div class="results-table">
                     <table id="resultsTable">
                         <thead>
@@ -60,20 +70,60 @@ Platelets: XXX"></textarea>
                                 <th>Pre-Count</th>
                                 <th>Post-Count</th>
                                 <th>CCI</th>
-                                <th>Response</th>
                             </tr>
                         </thead>
                         <tbody id="resultsBody"></tbody>
                     </table>
                 </div>
                 <div class="chart-container">
+                    <button id="resetZoom" class="btn">Reset Zoom</button>
                     <canvas id="plateletChart"></canvas>
                 </div>
             </section>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Time Settings</h2>
+            <div class="settings-grid">
+                <div class="input-group">
+                    <label for="minLookback">Minimum Lookback (hours)</label>
+                    <input type="number" id="minLookback" min="0" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="maxLookback">Maximum Lookback (hours)</label>
+                    <input type="number" id="maxLookback" min="1" value="36">
+                </div>
+                <div class="input-group">
+                    <label for="minAfter">Minimum After (minutes)</label>
+                    <input type="number" id="minAfter" min="1" value="1">
+                </div>
+                <div class="input-group">
+                    <label for="maxAfter">Maximum After (minutes)</label>
+                    <input type="number" id="maxAfter" min="1" value="120">
+                </div>
+            </div>
+            <button id="saveSettings" class="btn">Save Settings</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script>
+        // Register required components
+        Chart.register(Chart.TimeScale);
+        Chart.register(Chart.LinearScale);
+        Chart.register(Chart.PointElement);
+        Chart.register(Chart.LineElement);
+        Chart.register(Chart.Tooltip);
+        Chart.register(ChartAnnotation);
+        Chart.register(ChartZoom);
+    </script>
     <script src="js/calculator.js"></script>
     <script src="js/chart.js"></script>
     <script src="js/app.js"></script>
