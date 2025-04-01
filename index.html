@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Platelet Bump Calculator</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -13,71 +14,65 @@
         </header>
 
         <div class="calculator-grid">
-            <!-- Patient Info Section -->
-            <section class="patient-info">
-                <h2>Patient Information</h2>
+            <!-- Input Section -->
+            <section class="input-section">
+                <h2>Input</h2>
                 <div class="input-group">
                     <label for="weight">Weight (kg)</label>
-                    <input type="number" id="weight" min="0" step="0.1" required>
+                    <input type="number" id="weight" min="0" step="0.1">
                 </div>
                 <div class="input-group">
                     <label for="height">Height (cm)</label>
-                    <input type="number" id="height" min="0" step="0.1" required>
+                    <input type="number" id="height" min="0" step="0.1">
                 </div>
                 <div class="input-group">
                     <label for="plateletUnits">Platelet Units (×10¹¹)</label>
-                    <input type="number" id="plateletUnits" min="0" step="0.1" value="3" required>
+                    <input type="number" id="plateletUnits" min="0" value="3" step="0.1">
                 </div>
                 <div class="input-group">
-                    <button id="settingsButton" class="settings-btn">Time Settings</button>
+                    <label for="transfusionData">Transfusion Data</label>
+                    <textarea id="transfusionData" placeholder="MM/DD/YY HHMM to HHMM"></textarea>
                 </div>
-            </section>
-
-            <!-- Data Entry Section -->
-            <section class="data-entry">
-                <div class="input-area">
-                    <h2>Transfusion Data</h2>
-                    <textarea id="transfusionData" placeholder="Enter transfusion data...
-Format: MM/DD/YY HHMM to HHMM (24-hour)
-Example: 02/15/24 0800 to 0900
-Example: 02/15/24 2000 to 2100"></textarea>
+                <div class="input-group">
+                    <label for="plateletCounts">Platelet Counts</label>
+                    <textarea id="plateletCounts" placeholder="MM/DD/YY HH:MM&#10;PLT: XXX"></textarea>
                 </div>
-                <div class="input-area">
-                    <h2>Platelet Counts</h2>
-                    <textarea id="plateletCounts" placeholder="Enter platelet counts...
-Format: MM/DD/YY HH:MM (24-hour)
-Example: 02/15/24 08:00
-Example: 02/15/24 20:00
-PLT: XXX
-or
-MM/DD/YY HH:MM
-Platelets: XXX"></textarea>
-                </div>
+                <button id="settingsButton" class="btn">Settings</button>
             </section>
 
             <!-- Results Section -->
-            <section class="results">
-                <h2>Results</h2>
-                <div class="results-summary">
-                    <h3>Summary</h3>
-                    <div id="summaryText" class="summary-content"></div>
+            <section class="results-section">
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="plot">Plot</button>
+                    <button class="tab-button" data-tab="summary">Summary</button>
+                    <button class="tab-button" data-tab="table">Table</button>
                 </div>
-                <div class="results-table">
-                    <table id="resultsTable">
-                        <thead>
-                            <tr>
-                                <th>Date/Time</th>
-                                <th>Pre-Count</th>
-                                <th>Post-Count</th>
-                                <th>CCI</th>
-                            </tr>
-                        </thead>
-                        <tbody id="resultsBody"></tbody>
-                    </table>
-                </div>
-                <div class="chart-container">
-                    <button id="resetZoom" class="btn">Reset Zoom</button>
-                    <canvas id="plateletChart"></canvas>
+
+                <div class="tab-content">
+                    <div id="plot" class="tab-pane active">
+                        <button id="resetZoom" class="btn">Reset Zoom</button>
+                        <div class="chart-container"></div>
+                    </div>
+                    
+                    <div id="summary" class="tab-pane">
+                        <div class="results-summary">
+                            <div id="summaryText" class="summary-content"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="table" class="tab-pane">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date/Time</th>
+                                    <th>Pre-Count</th>
+                                    <th>Post-Count</th>
+                                    <th>CCI</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </div>
@@ -110,20 +105,6 @@ Platelets: XXX"></textarea>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
-    <script>
-        // Register required components
-        Chart.register(Chart.TimeScale);
-        Chart.register(Chart.LinearScale);
-        Chart.register(Chart.PointElement);
-        Chart.register(Chart.LineElement);
-        Chart.register(Chart.Tooltip);
-        Chart.register(ChartAnnotation);
-        Chart.register(ChartZoom);
-    </script>
     <script src="js/calculator.js"></script>
     <script src="js/chart.js"></script>
     <script src="js/app.js"></script>

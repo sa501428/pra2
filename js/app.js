@@ -1,7 +1,7 @@
 class PlateletApp {
     constructor() {
         this.calculator = new PlateletCalculator();
-        this.chart = new PlateletChart('plateletChart');
+        this.chart = new PlateletChart('.chart-container');
         
         // Add reset zoom button handler
         document.getElementById('resetZoom').addEventListener('click', () => {
@@ -16,6 +16,28 @@ class PlateletApp {
         };
         this.initializeEventListeners();
         this.initializeModal();
+        this.initializeTabs();
+    }
+
+    initializeTabs() {
+        const tabs = document.querySelectorAll('.tab-button');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and panes
+                document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding pane
+                tab.classList.add('active');
+                const pane = document.getElementById(tab.dataset.tab);
+                pane.classList.add('active');
+
+                // Redraw chart if switching to plot tab
+                if (tab.dataset.tab === 'plot') {
+                    this.chart.resize();
+                }
+            });
+        });
     }
 
     initializeModal() {
