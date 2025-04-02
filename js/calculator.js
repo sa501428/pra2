@@ -40,7 +40,8 @@ class PlateletCalculator {
     }
 
     parsePlateletCounts(text) {
-        const regex = /(\d{2}\/\d{2}\/\d{2})\s+([0-2][0-9]):([0-5][0-9])\s*[\r\n]+(?:PLT:|Platelets:)\s*(\d+)/g;
+        const regex = /(\d{2}\/\d{2}\/\d{2})\s+([0-2][0-9]):([0-5][0-9])\s*[\r\n]+(?:PLT(?: \([A-Za-z\s]+\))?:|Platelets(?: \([A-Za-z\s]+\))?:)\s*(\d+)/g;
+
         const counts = [];
         let match;
 
